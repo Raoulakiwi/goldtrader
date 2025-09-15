@@ -26,7 +26,7 @@ interface GoldDataState {
 }
 
 export function useGoldData(timeframe: TimeFrame = "1h") {
-  // Store API credentials in local storage
+  // Store API credentials in local storage with hydration safety
   const [credentials, setCredentials] = useLocalStorage<ApiCredentials | null>(
     'icmarkets-api-credentials',
     null
@@ -70,6 +70,7 @@ export function useGoldData(timeframe: TimeFrame = "1h") {
     const fetchData = async () => {
       if (!isMounted) return;
       
+      console.log('useGoldData: Starting data fetch for timeframe:', timeframe);
       setState(prev => ({ ...prev, isLoading: true, isError: false, errorMessage: null }));
       
       try {
@@ -138,13 +139,26 @@ export function useGoldData(timeframe: TimeFrame = "1h") {
         
         // Use mock data as fallback
         if (isMounted) {
+          console.log('useGoldData: Using mock data fallback');
+          const mockPriceData = generateMockPriceData(timeframe, from, to);
+          const mockMarketOverview = generateMockMarketOverview();
+          const mockTechnicalIndicators = generateMockTechnicalIndicators();
+          const mockSentimentData = generateMockSentimentData();
+          const mockFundamentalData = generateMockFundamentalData();
+          
+          console.log('useGoldData: Mock data generated:', {
+            priceDataLength: mockPriceData.length,
+            marketOverview: mockMarketOverview,
+            technicalIndicators: mockTechnicalIndicators
+          });
+          
           setState(prev => ({
             ...prev,
-            priceData: generateMockPriceData(timeframe, from, to),
-            marketOverview: generateMockMarketOverview(),
-            technicalIndicators: generateMockTechnicalIndicators(),
-            sentimentData: generateMockSentimentData(),
-            fundamentalData: generateMockFundamentalData(),
+            priceData: mockPriceData,
+            marketOverview: mockMarketOverview,
+            technicalIndicators: mockTechnicalIndicators,
+            sentimentData: mockSentimentData,
+            fundamentalData: mockFundamentalData,
             isLoading: false,
             isUsingLiveData: false
           }));

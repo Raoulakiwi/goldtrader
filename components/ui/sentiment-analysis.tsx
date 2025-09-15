@@ -9,11 +9,15 @@ import {
   BarChart2, 
   Building, 
   MessageSquare,
-  Gauge
+  Gauge,
+  Newspaper,
+  Twitter,
+  Globe
 } from 'lucide-react';
+import { SentimentData } from '@/lib/types';
 
 interface SentimentAnalysisProps {
-  data: any;
+  data: SentimentData | null;
   isLoading: boolean;
 }
 
@@ -25,10 +29,10 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
   
   // Determine overall sentiment
   const determineSentiment = () => {
-    if (!data || !data.bullishPercentage) return 'neutral';
+    if (!data || !data.overall) return 'neutral';
     
-    if (data.bullishPercentage > 60) return 'bullish';
-    if (data.bearishPercentage > 60) return 'bearish';
+    if (data.overall.trend === 'bullish') return 'bullish';
+    if (data.overall.trend === 'bearish') return 'bearish';
     
     return 'neutral';
   };
@@ -80,27 +84,27 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
         <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
             <Gauge className="mr-1 h-4 w-4 text-amber-500" />
-            Market Sentiment
+            Overall Sentiment
           </h3>
           
           <div className="mt-3 space-y-3">
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Bullish</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Score</span>
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.bullishPercentage}%`
+                    `${data?.overall.score || 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
+              {!isLoading && data && (
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
                   <motion.div 
                     className="h-2 rounded-full bg-green-500"
                     initial={{ width: 0 }}
-                    animate={{ width: `${data.bullishPercentage}%` }}
+                    animate={{ width: `${data.overall.score}%` }}
                     transition={{ duration: 1, delay: 0.3 }}
                   ></motion.div>
                 </div>
@@ -109,21 +113,21 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
             
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Bearish</span>
-                <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Confidence</span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.bearishPercentage}%`
+                    `${data?.overall.confidence || 0}%`
                   )}
                 </span>
               </div>
-              {!isLoading && (
+              {!isLoading && data && (
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
                   <motion.div 
-                    className="h-2 rounded-full bg-red-500"
+                    className="h-2 rounded-full bg-blue-500"
                     initial={{ width: 0 }}
-                    animate={{ width: `${data.bearishPercentage}%` }}
+                    animate={{ width: `${data.overall.confidence}%` }}
                     transition={{ duration: 1, delay: 0.4 }}
                   ></motion.div>
                 </div>
@@ -132,53 +136,43 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
             
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Neutral</span>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Data Sources</span>
+                <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.neutralPercentage}%`
+                    `${data ? Object.keys(data.sources).length : 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
-                  <motion.div 
-                    className="h-2 rounded-full bg-gray-400"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${data.neutralPercentage}%` }}
-                    transition={{ duration: 1, delay: 0.5 }}
-                  ></motion.div>
-                </div>
-              )}
             </div>
           </div>
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
-            <Users className="mr-1 h-4 w-4 text-amber-500" />
-            Retail Sentiment
+            <Newspaper className="mr-1 h-4 w-4 text-blue-500" />
+            News Sentiment
           </h3>
           
           <div className="mt-3 space-y-3">
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Long</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Score</span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.retailSentiment.long}%`
+                    `${data?.sources.news.score || 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
+              {!isLoading && data && (
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
                   <motion.div 
-                    className="h-2 rounded-full bg-green-500"
+                    className="h-2 rounded-full bg-blue-500"
                     initial={{ width: 0 }}
-                    animate={{ width: `${data.retailSentiment.long}%` }}
+                    animate={{ width: `${data.sources.news.score}%` }}
                     transition={{ duration: 1, delay: 0.3 }}
                   ></motion.div>
                 </div>
@@ -187,25 +181,28 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
             
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Short</span>
-                <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Articles</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.retailSentiment.short}%`
+                    `${data?.sources.news.articles.length || 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
-                  <motion.div 
-                    className="h-2 rounded-full bg-red-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${data.retailSentiment.short}%` }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                  ></motion.div>
-                </div>
-              )}
+            </div>
+            
+            <div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Sources</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {isLoading ? (
+                    <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                  ) : (
+                    `${data?.sources.news.sources.length || 0}`
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -214,28 +211,28 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
-            <Building className="mr-1 h-4 w-4 text-amber-500" />
-            Institutional Sentiment
+            <Twitter className="mr-1 h-4 w-4 text-blue-400" />
+            Social Media Sentiment
           </h3>
           
           <div className="mt-3 space-y-3">
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Long</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Score</span>
+                <span className="text-sm font-medium text-blue-400">
                   {isLoading ? (
                     <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.institutionalSentiment.long}%`
+                    `${data?.sources.social.score || 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
+              {!isLoading && data && (
                 <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
                   <motion.div 
-                    className="h-2 rounded-full bg-green-500"
+                    className="h-2 rounded-full bg-blue-400"
                     initial={{ width: 0 }}
-                    animate={{ width: `${data.institutionalSentiment.long}%` }}
+                    animate={{ width: `${data.sources.social.score}%` }}
                     transition={{ duration: 1, delay: 0.3 }}
                   ></motion.div>
                 </div>
@@ -244,75 +241,79 @@ export default function SentimentAnalysis({ data, isLoading }: SentimentAnalysis
             
             <div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-500 dark:text-gray-400">Short</span>
-                <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Mentions</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                   {isLoading ? (
-                    <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                    <div className="h-4 w-16 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                   ) : (
-                    `${data.institutionalSentiment.short}%`
+                    `${data?.sources.social.mentions.toLocaleString() || 0}`
                   )}
                 </span>
               </div>
-              {!isLoading && (
-                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-1">
-                  <motion.div 
-                    className="h-2 rounded-full bg-red-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${data.institutionalSentiment.short}%` }}
-                    transition={{ duration: 1, delay: 0.4 }}
-                  ></motion.div>
-                </div>
-              )}
+            </div>
+            
+            <div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Platforms</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {isLoading ? (
+                    <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                  ) : (
+                    `${Object.keys(data?.sources.social.platforms || {}).length}`
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center">
-            <MessageSquare className="mr-1 h-4 w-4 text-amber-500" />
-            Social Media Sentiment
+            <Globe className="mr-1 h-4 w-4 text-green-500" />
+            Multi-Source Overview
           </h3>
           
           <div className="mt-3 space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Mentions</span>
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Reddit</span>
+              <span className="text-sm font-medium text-orange-500">
                 {isLoading ? (
-                  <div className="h-4 w-16 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                  <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                 ) : (
-                  data.socialMediaMentions.toLocaleString()
+                  `${data?.sources.reddit.score || 0}`
                 )}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Sentiment Score</span>
-              <span className={`text-sm font-medium ${
-                isLoading ? 'text-gray-400' : 
-                data.sentimentScore > 60 ? 'text-green-500' : 
-                data.sentimentScore < 40 ? 'text-red-500' : 
-                'text-amber-500'
-              }`}>
+              <span className="text-sm text-gray-500 dark:text-gray-400">Twitter</span>
+              <span className="text-sm font-medium text-blue-400">
                 {isLoading ? (
                   <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
                 ) : (
-                  data.sentimentScore
+                  `${data?.sources.twitter.score || 0}`
                 )}
               </span>
             </div>
-            {!isLoading && (
-              <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-2">
-                <motion.div 
-                  className={`h-2 rounded-full ${
-                    data.sentimentScore > 60 ? 'bg-green-500' : 
-                    data.sentimentScore < 40 ? 'bg-red-500' : 
-                    'bg-amber-500'
-                  }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${data.sentimentScore}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                ></motion.div>
-              </div>
-            )}
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Institutional</span>
+              <span className="text-sm font-medium text-purple-500">
+                {isLoading ? (
+                  <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                ) : (
+                  `${data?.sources.institutional.score || 0}`
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Retail</span>
+              <span className="text-sm font-medium text-pink-500">
+                {isLoading ? (
+                  <div className="h-4 w-10 bg-gray-200 dark:bg-gray-600 rounded animate-pulse inline-block"></div>
+                ) : (
+                  `${data?.sources.retail.score || 0}`
+                )}
+              </span>
+            </div>
           </div>
         </div>
       </div>

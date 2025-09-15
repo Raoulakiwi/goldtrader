@@ -8,18 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import dynamic from "next/dynamic"
 
-const Chart = dynamic(
-  () => import("recharts").then((mod) => mod.LineChart),
+const DynamicChart = dynamic(
+  () => import("./performance-chart-internal"),
   { ssr: false, loading: () => <div className="h-[300px] w-full flex items-center justify-center">Loading chart...</div> }
 )
-
-const Line = dynamic(() => import("recharts").then((mod) => mod.Line), { ssr: false })
-const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), { ssr: false })
-const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), { ssr: false })
-const CartesianGrid = dynamic(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false })
-const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false })
-const Legend = dynamic(() => import("recharts").then((mod) => mod.Legend), { ssr: false })
-const ResponsiveContainer = dynamic(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false })
 
 // Mock data for the performance chart
 const performanceData = {
@@ -93,41 +85,7 @@ export function PerformanceChart() {
             
             {Object.keys(performanceData).map((key) => (
               <TabsContent key={key} value={key} className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <Chart
-                    data={performanceData[key as keyof typeof performanceData]}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis 
-                      dataKey="date" 
-                      stroke="var(--muted-foreground)"
-                      tick={{ fill: 'var(--muted-foreground)' }}
-                    />
-                    <YAxis 
-                      stroke="var(--muted-foreground)"
-                      tick={{ fill: 'var(--muted-foreground)' }}
-                      tickFormatter={(value) => `$${value.toLocaleString()}`}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, 'Value']}
-                      contentStyle={{ 
-                        backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)',
-                        color: 'var(--card-foreground)'
-                      }}
-                    />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      name="Portfolio Value"
-                      stroke="var(--primary)" 
-                      activeDot={{ r: 8 }}
-                      strokeWidth={2}
-                    />
-                  </Chart>
-                </ResponsiveContainer>
+                <DynamicChart data={performanceData[key as keyof typeof performanceData]} />
               </TabsContent>
             ))}
           </Tabs>

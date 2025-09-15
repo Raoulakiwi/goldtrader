@@ -1,27 +1,23 @@
 "use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useGoldData, TimeFrame } from '@/lib/hooks/useGoldData';
-import PriceChart from '@/components/ui/price-chart';
+import TimeframeSelector from '@/components/ui/timeframe-selector';
 import MarketOverview from '@/components/ui/market-overview';
+import PriceChart from '@/components/ui/price-chart';
 import TechnicalAnalysis from '@/components/ui/technical-analysis';
+import TradingInterface from '@/components/ui/trading-interface';
 import FundamentalAnalysis from '@/components/ui/fundamental-analysis';
 import SentimentAnalysis from '@/components/ui/sentiment-analysis';
-import TradingInterface from '@/components/ui/trading-interface';
-import ApiCredentialsForm from '@/components/ui/api-credentials-form';
-import TimeframeSelector from '@/components/ui/timeframe-selector';
-import { 
-  BarChart4, 
-  RefreshCw, 
-  Info, 
-  X,
-  Coins
-} from 'lucide-react';
+import { Coins } from 'lucide-react';
 
 export default function Dashboard() {
+  const [isMounted, setIsMounted] = useState(false);
   const [timeframe, setTimeframe] = useState<TimeFrame>("1h");
-  const [showInfoBanner, setShowInfoBanner] = useState(true);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const { 
     priceData, 
@@ -36,61 +32,44 @@ export default function Dashboard() {
     updateCredentials,
     refreshData
   } = useGoldData(timeframe);
-  
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pb-12">
-      {/* Header */}
-      <header className="sticky top-0 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 backdrop-blur-sm shadow-sm z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Coins className="h-8 w-8 text-amber-500" />
-              <h1 className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-                Gold Trading Analysis
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ApiCredentialsForm 
-                onSave={updateCredentials} 
-                currentCredentials={null} 
-                isUsingLiveData={isUsingLiveData}
-              />
-              <button
-                onClick={refreshData}
-                className="flex items-center px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Data
-              </button>
-            </div>
-          </div>
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Coins className="h-12 w-12 text-amber-500 mx-auto mb-4 animate-pulse" />
+          <p className="text-gray-600 dark:text-gray-400">Loading Dashboard...</p>
         </div>
-      </header>
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Info Banner */}
-        {showInfoBanner && (
-          <motion.div 
-            className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800/50 flex items-center justify-between"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+      </div>
+    );
+  }
+  
+  // Show error state if there's an error
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <Coins className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{errorMessage}</p>
+          <button
+            onClick={refreshData}
+            className="px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600"
           >
-            <div className="flex items-center">
-              <Info className="h-5 w-5 text-blue-500 mr-3 flex-shrink-0" />
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                This application now supports integration with IC Markets API for real-time Gold (XAUUSD) price data. 
-                Click "Connect to IC Markets API" to add your credentials.
-              </p>
-            </div>
-            <button 
-              onClick={() => setShowInfoBanner(false)}
-              className="ml-4 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </motion.div>
-        )}
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center">
+          <Coins className="h-8 w-8 text-amber-500 mr-3" />
+          Gold Trading Dashboard - Debug Mode
+        </h1>
         
         {/* Timeframe Selector */}
         <div className="mb-6">
@@ -100,24 +79,24 @@ export default function Dashboard() {
           />
         </div>
         
-        {/* Price Chart and Market Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
-            <PriceChart 
-              data={priceData} 
-              isLoading={isLoading} 
-              isError={isError} 
-              errorMessage={errorMessage}
-              timeframe={timeframe}
-            />
-          </div>
-          <div>
-            <MarketOverview 
-              data={marketOverview} 
-              isLoading={isLoading}
-              isUsingLiveData={isUsingLiveData}
-            />
-          </div>
+        {/* Price Chart */}
+        <div className="mb-6">
+          <PriceChart 
+            data={priceData} 
+            isLoading={isLoading} 
+            isError={isError} 
+            errorMessage={errorMessage}
+            timeframe={timeframe}
+          />
+        </div>
+        
+        {/* Market Overview */}
+        <div className="mb-6">
+          <MarketOverview 
+            data={marketOverview} 
+            isLoading={isLoading}
+            isUsingLiveData={isUsingLiveData}
+          />
         </div>
         
         {/* Technical Analysis */}
@@ -138,7 +117,7 @@ export default function Dashboard() {
         </div>
         
         {/* Fundamental and Sentiment Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <FundamentalAnalysis 
             data={fundamentalData} 
             isLoading={isLoading} 
@@ -148,7 +127,56 @@ export default function Dashboard() {
             isLoading={isLoading} 
           />
         </div>
-      </main>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+            Dashboard Status
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <span className="text-green-800 dark:text-green-200 font-medium">
+                Component Mounted: {isMounted ? 'Yes' : 'No'}
+              </span>
+              <span className="text-green-600 dark:text-green-400">✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <span className="text-blue-800 dark:text-blue-200 font-medium">
+                React Hooks Working
+              </span>
+              <span className="text-blue-600 dark:text-blue-400">✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <span className="text-purple-800 dark:text-purple-200 font-medium">
+                Tailwind CSS Working
+              </span>
+              <span className="text-purple-600 dark:text-purple-400">✓</span>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+              <span className="text-amber-800 dark:text-amber-200 font-medium">
+                useGoldData Hook Working
+              </span>
+              <span className="text-amber-600 dark:text-amber-400">✓</span>
+            </div>
+          </div>
+          
+          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-2">
+              Hook Data Status
+            </h3>
+            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <div>Loading: {isLoading ? 'Yes' : 'No'}</div>
+              <div>Error: {isError ? 'Yes' : 'No'}</div>
+              <div>Using Live Data: {isUsingLiveData ? 'Yes' : 'No'}</div>
+              <div>Price Data Length: {priceData?.length || 0}</div>
+              <div>Market Overview: {marketOverview ? 'Available' : 'Not Available'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

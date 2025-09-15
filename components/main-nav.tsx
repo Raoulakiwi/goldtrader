@@ -83,7 +83,7 @@ export function MainNav() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/analysis/sentiment" className="flex items-center">
+            <Link href="/sentiment" className="flex items-center">
               <MessageSquare className="h-4 w-4 mr-2" />
               Sentiment
             </Link>
