@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "check:certified": "node scripts/check-certified-surfaces.js",
+    "setup:hooks": "node scripts/setup-certified-hooks.js"
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
